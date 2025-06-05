@@ -3,17 +3,17 @@ name: MLflow Project CI, Docker Build & Push
 on:
   push:
     branches:
-      - main 
+      - main
     paths:
       - 'MLProject/**' # Trigger jika ada perubahan di dalam folder MLProject
-  workflow_dispatch: 
+  workflow_dispatch:
 
 jobs:
   train-model-and-build-docker:
     runs-on: ubuntu-latest # Menggunakan environment Linux terbaru
     
     steps:
-      # Langkah 1: Mengambil (checkout) kode dari repository 
+      # Langkah 1: Mengambil (checkout) kode dari repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -21,14 +21,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12.7' 
+          python-version: '3.12.7' # Pastikan versi ini konsisten
 
       # Langkah 3: Install MLflow (untuk bisa menjalankan 'mlflow run')
       - name: Install MLflow
-        run: pip install mlflow==2.20.0 
+        run: pip install mlflow==2.20.0 # Atau versi yang lebih baru jika diperlukan
 
       # Langkah 4: Menjalankan MLflow Project untuk re-training model
-      # Script modelling_tuning.py di dalam MLProject akan log ke DagsHub
       - name: Run MLflow Project (Re-Training Model)
         env:
           # Ambil dari GitHub Secrets
@@ -36,7 +35,7 @@ jobs:
           MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_TRACKING_USERNAME }}
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
         # Menjalankan entry point 'main' dari file MLproject yang ada di dalam folder ./MLProject
-        run: mlflow run ./MLProject --experiment-name "TelcoChurn_CI_Retraining_K3" 
+        run: mlflow run ./MLProject --experiment-name "TelcoChurn_CI_Retraining_K3"
 
       # Langkah 5: Login ke Docker Hub
       - name: Log in to Docker Hub
@@ -54,11 +53,8 @@ jobs:
         id: docker_build # Memberi ID pada step ini agar outputnya bisa diakses
         uses: docker/build-push-action@v5
         with:
-          context: ./MLProject # Direktori yang berisi Dockerfile
-          file: ./MLProject/Dockerfile # Path ke Dockerfile
-          push: true # Set true untuk push ke registry setelah build
+          context: ./MLProject # Direktori yang berisi Dockerfile dan semua konten untuk build
+          file: ./MLProject/Dockerfile # Path ke Dockerfile relatif dari root repository
+          push: true # Set true untuk push ke registry (Docker Hub) setelah build berhasil
+          # Menggunakan secret DOCKERHUB_USERNAME untuk nama user dan nama image yang sudah kamu tentukan
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/sml-kriteria3-image:k3-latest
-
-      # Langkah 8 (Opsional): Cetak informasi image yang di-push
-      - name: Print Docker image digest
-        run: echo "Docker Image Digest: ${{ steps.docker_build.outputs.digest }}"

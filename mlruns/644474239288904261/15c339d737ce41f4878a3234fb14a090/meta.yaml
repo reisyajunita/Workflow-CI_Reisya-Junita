@@ -1,0 +1,15 @@
+artifact_uri: file:///D:/Users/Reisya%20Junita/Documents/Laskar%20Ai/Materi/Membangun%20Sistem%20Machine%20Learning/membangun_model/mlruns/644474239288904261/15c339d737ce41f4878a3234fb14a090/artifacts
+end_time: 1749021502553
+entry_point_name: ''
+experiment_id: '644474239288904261'
+lifecycle_stage: active
+run_id: 15c339d737ce41f4878a3234fb14a090
+run_name: Run_LogisticRegression_TuningLRManualLog
+run_uuid: 15c339d737ce41f4878a3234fb14a090
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1749021307131
+status: 3
+tags: []
+user_id: Reisya

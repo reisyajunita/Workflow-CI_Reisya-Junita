@@ -1,0 +1,6 @@
+artifact_location: file:///D:/Users/Reisya%20Junita/Documents/Laskar%20Ai/Materi/Membangun%20Sistem%20Machine%20Learning/membangun_model/mlruns/254407420964266969
+creation_time: 1749021502581
+experiment_id: '254407420964266969'
+last_update_time: 1749021502581
+lifecycle_stage: active
+name: TelcoChurn_RandomForestClassifier_Tuning_RF_ManualLog

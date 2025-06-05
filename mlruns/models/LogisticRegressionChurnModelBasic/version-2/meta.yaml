@@ -1,0 +1,14 @@
+aliases: []
+creation_timestamp: 1749019693215
+current_stage: None
+description: null
+last_updated_timestamp: 1749019693215
+name: LogisticRegressionChurnModelBasic
+run_id: c0387e12a5f741cc90a3e0abb01004d3
+run_link: null
+source: file:///D:/Users/Reisya%20Junita/Documents/Laskar%20Ai/Materi/Membangun%20Sistem%20Machine%20Learning/membangun_model/mlruns/787761552559718298/c0387e12a5f741cc90a3e0abb01004d3/artifacts/model
+status: READY
+status_message: null
+storage_location: file:///D:/Users/Reisya%20Junita/Documents/Laskar%20Ai/Materi/Membangun%20Sistem%20Machine%20Learning/membangun_model/mlruns/787761552559718298/c0387e12a5f741cc90a3e0abb01004d3/artifacts/model
+user_id: null
+version: 2

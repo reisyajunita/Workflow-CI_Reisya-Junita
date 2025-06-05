@@ -1,0 +1,6 @@
+artifact_location: file:///D:/Users/Reisya%20Junita/Documents/Laskar%20Ai/Materi/Membangun%20Sistem%20Machine%20Learning/membangun_model/mlruns/787761552559718298
+creation_time: 1749008730182
+experiment_id: '787761552559718298'
+last_update_time: 1749008730182
+lifecycle_stage: active
+name: TelcoChurn_LogisticRegression_Basic_Autolog

@@ -58,3 +58,7 @@ jobs:
           push: true # Set true untuk push ke registry (Docker Hub) setelah build berhasil
           # Menggunakan secret DOCKERHUB_USERNAME untuk nama user dan nama image yang sudah kamu tentukan
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/sml-kriteria3-image:k3-latest
+          
+      # Langkah 8 (Opsional): Cetak informasi image yang di-push
+      - name: Print Docker image digest
+        run: echo "Docker Image Digest: ${{ steps.docker_build.outputs.digest }}"

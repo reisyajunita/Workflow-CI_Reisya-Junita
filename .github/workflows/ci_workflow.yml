@@ -61,4 +61,4 @@ jobs:
           
       # Langkah 8 (Opsional): Cetak informasi image yang di-push
       - name: Print Docker image digest
-        run: echo "Docker Image Digest: ${{ steps.docker_build.outputs.digest }}"
+        run: echo "Docker Image Digest:${{ steps.docker_build.outputs.digest }}"

@@ -1,5 +1,7 @@
 name: TelcoChurnPredictionCI
 
+python_env: requirements.txt 
+
 entry_points:
   main:
-    command: "python modelling_tuning.py"
+    command: "python ./modelling_tuning.py"

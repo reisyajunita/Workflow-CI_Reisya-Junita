@@ -77,7 +77,7 @@ def train_model_with_tuning_dagshub(df_processed, model_choice, param_grid_model
         print(f"Mengakhiri run MLflow yang aktif sebelumnya: {active_run_id}")
         mlflow.end_run()
 
-    with mlflow.start_run(run_name=f"Run_{model_choice.__class__.__name__}_{experiment_suffix.replace('_', '')}") as run:
+    with mlflow.start_run(run_name=f"Run_{model_choice.__class__.__name__}_{experiment_suffix.replace('_', '')}", nested=True) as run:
         run_id = run.info.run_id
         print(f"MLflow Run ID: {run_id}")
         print(f"MLflow Artifact URI (DagsHub): {mlflow.get_artifact_uri()}")

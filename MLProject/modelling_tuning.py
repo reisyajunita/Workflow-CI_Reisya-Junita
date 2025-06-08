@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import mlflow
 import mlflow.sklearn
-import dagshub # Pastikan ini di-import
+import dagshub
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
@@ -11,15 +11,6 @@ from sklearn.metrics import (accuracy_score, precision_score, recall_score,
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
-
-# --- Konfigurasi dan Inisialisasi DagsHub ---
-# Untuk Git Bash / MINGW64
-# export MLFLOW_TRACKING_URI="https://dagshub.com/reisyajunita/membangun_model.mlflow"
-# export MLFLOW_TRACKING_USERNAME="reisyajunita"
-# export MLFLOW_TRACKING_PASSWORD="TOKEN_"
-
-# Environment Variables (MLFLOW_TRACKING_URI, USERNAME, PASSWORD/TOKEN)
-# HARUS SUDAH DI-SET di terminal SEBELUM menjalankan script ini.
 
 try:
     dagshub.init(repo_owner='reisyajunita', repo_name='membangun_model', mlflow=True)
@@ -59,16 +50,12 @@ def train_model_with_tuning_dagshub(df_processed, model_choice, param_grid_model
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
     print(f"Data di-split: X_train shape: {X_train.shape}, X_test shape: {X_test.shape}")
 
-    experiment_name = f"TelcoChurn_{model_choice.__class__.__name__}_{experiment_suffix}"
+    # Hapus set_experiment() agar tidak konflik dengan CLI
     try:
-        current_experiment = mlflow.get_experiment_by_name(experiment_name)
-        if current_experiment is None:
-            # Saat membuat experiment baru untuk DagsHub, sertakan artifact_location
-            mlflow.create_experiment(experiment_name, artifact_location=mlflow.get_artifact_uri())
-        mlflow.set_experiment(experiment_name)
-        print(f"Menggunakan eksperimen: '{experiment_name}' di DagsHub.")
+        current_experiment = mlflow.get_experiment()
+        print(f"Menggunakan eksperimen (dari CLI/ENV): '{current_experiment.name}'")
     except Exception as e:
-        print(f"Error saat mengatur eksperimen MLflow di DagsHub: {e}")
+        print(f"Error mengambil informasi eksperimen aktif: {e}")
         return
 
     # Pastikan tidak ada run aktif sebelumnya sebelum memulai yang baru
@@ -77,12 +64,11 @@ def train_model_with_tuning_dagshub(df_processed, model_choice, param_grid_model
         print(f"Mengakhiri run MLflow yang aktif sebelumnya: {active_run_id}")
         mlflow.end_run()
 
-    with mlflow.start_run(run_name=f"Run_{model_choice.__class__.__name__}_{experiment_suffix.replace('_', '')}", nested=True) as run:
+    with mlflow.start_run(run_name=f"Run_{model_choice.__class__.__name__}_{experiment_suffix.replace('_', '')}") as run:
         run_id = run.info.run_id
         print(f"MLflow Run ID: {run_id}")
         print(f"MLflow Artifact URI (DagsHub): {mlflow.get_artifact_uri()}")
 
-        # Log parameter
         mlflow.log_param("input_data_path_for_run", input_path_for_logging) 
         mlflow.log_param("training_data_rows", X_train.shape[0])
         mlflow.log_param("training_data_cols", X_train.shape[1])
@@ -99,7 +85,6 @@ def train_model_with_tuning_dagshub(df_processed, model_choice, param_grid_model
         print(f"Best Parameters: {best_params}")
         print(f"Best ROC AUC score from CV: {best_cv_roc_auc:.4f}")
 
-        # MLflow Manual Logging
         mlflow.log_params(best_params)
         mlflow.log_param("model_class", model_choice.__class__.__name__)
         mlflow.log_param("cv_folds_gridsearch", grid_search.cv)
@@ -114,7 +99,7 @@ def train_model_with_tuning_dagshub(df_processed, model_choice, param_grid_model
         recall_test = recall_score(y_test, y_pred_test, zero_division=0)
         f1_test = f1_score(y_test, y_pred_test, zero_division=0)
         roc_auc_test = roc_auc_score(y_test, y_pred_proba_positive_class_test)
-        logloss_test = log_loss(y_test, y_pred_proba_test) # Metrik Tambahan 1
+        logloss_test = log_loss(y_test, y_pred_proba_test)
 
         print(f"\nMetrics on Test Set: Acc: {accuracy_test:.4f}, Prec: {precision_test:.4f}, Rec: {recall_test:.4f}, F1: {f1_test:.4f}, ROC_AUC: {roc_auc_test:.4f}, LogLoss: {logloss_test:.4f}")
         mlflow.log_metric("accuracy_test", accuracy_test)
@@ -145,9 +130,12 @@ def train_model_with_tuning_dagshub(df_processed, model_choice, param_grid_model
         ax.set_title('Confusion Matrix on Test Set'); ax.set_xlabel('Predicted'); ax.set_ylabel('Actual')
         mlflow.log_figure(fig, "evaluation_plots_dagshub/confusion_matrix_test.png")
         plt.close(fig)
-        print(f"Confusion matrix plot logged ke DagsHub.")
-        
-        test_predictions_df = pd.DataFrame({'actual_churn': y_test, 'predicted_churn': y_pred_test, 'probability_churn': y_pred_proba_positive_class_test})
+
+        test_predictions_df = pd.DataFrame({
+            'actual_churn': y_test,
+            'predicted_churn': y_pred_test,
+            'probability_churn': y_pred_proba_positive_class_test
+        })
         mlflow.log_table(data=test_predictions_df, artifact_file="prediction_outputs_dagshub/test_set_predictions.json")
         print("Test set predictions logged sebagai table artifact ke DagsHub.")
 
@@ -155,33 +143,31 @@ def train_model_with_tuning_dagshub(df_processed, model_choice, param_grid_model
 
 # --- 3. Main Execution Block ---
 if __name__ == "__main__":
-    # Definisikan path data di sini agar bisa dilewatkan ke fungsi
-    current_input_data_path = "telco-dataset_preprocessing/dataset_processed.csv" 
-    
+    current_input_data_path = "telco-dataset_preprocessing/dataset_processed.csv"
     df_processed = load_processed_data(current_input_data_path)
 
     if df_processed is not None:
         print("\n--- Starting Experiment (DagsHub): Logistic Regression ---")
         logreg_model = LogisticRegression(solver='liblinear', random_state=42, max_iter=1000)
         param_grid_logreg = {
-            'C': [0.1, 1, 10], 
-            'penalty': ['l1', 'l2'], 
+            'C': [0.1, 1, 10],
+            'penalty': ['l1', 'l2'],
             'class_weight': [None, 'balanced']
         }
-        train_model_with_tuning_dagshub(df_processed.copy(), logreg_model, param_grid_logreg, 
-                                        input_path_for_logging=current_input_data_path, 
+        train_model_with_tuning_dagshub(df_processed.copy(), logreg_model, param_grid_logreg,
+                                        input_path_for_logging=current_input_data_path,
                                         experiment_suffix="Tuning_LR_Advanced")
 
         print("\n--- Starting Experiment (DagsHub): Random Forest ---")
         rf_model = RandomForestClassifier(random_state=42)
         param_grid_rf_simple = {
             'n_estimators': [100], 'max_depth': [10, 20],
-            'min_samples_split': [5, 10], 'class_weight':['balanced', None]
+            'min_samples_split': [5, 10], 'class_weight': ['balanced', None]
         }
-        train_model_with_tuning_dagshub(df_processed.copy(), rf_model, param_grid_rf_simple, 
-                                        input_path_for_logging=current_input_data_path, 
+        train_model_with_tuning_dagshub(df_processed.copy(), rf_model, param_grid_rf_simple,
+                                        input_path_for_logging=current_input_data_path,
                                         experiment_suffix="Tuning_RF_Advanced")
     else:
         print("Pemrosesan model dibatalkan.")
-    
+
     print(f"\nSemua eksperimen selesai. Periksa hasil di DagsHub: https://dagshub.com/reisyajunita/membangun_model/experiments")
